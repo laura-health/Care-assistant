@@ -10,10 +10,10 @@ LOCALE = 'pt-br'
 CORS_ORIGINS = {'origins': ['https://integrationtest.mybluemix.net',
                             'https://integration.mybluemix.net']
                 }
-SQLALCHEMY_DATABASE_URI = 'oracle://DBAMV:DBAMVHPP@172.16.170.17/hpmvtraa'
+SQLALCHEMY_DATABASE_URI = ''
 SQLALCHEMY_TRACK_MODIFICATIONS = False
-USERNAME = 'jfBcdRd5'
-PASSWORD = '9cBYvpyx'
+USERNAME = ''
+PASSWORD = ''
 MAIL_SERVER = 'example.com'
 MAIL_PORT = 000
 MAIL_USE_SSL = True

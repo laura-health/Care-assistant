@@ -13,9 +13,9 @@ You'll need the following:
 
 ## 1. Run the app locally
 
-Install the dependencies listed in the [requirements.txt !](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files) file to be able to run the app locally.
+Install the dependencies listed in the [requirements.txt](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files) file to be able to run the app locally.
 
-You can optionally use a [virtual environment !](https://packaging.python.org/installing/#creating-and-using-virtual-environments) to avoid having these dependencies clash with those of other Python projects or your operating system.
+You can optionally use a [virtual environment](https://packaging.python.org/installing/#creating-and-using-virtual-environments) to avoid having these dependencies clash with those of other Python projects or your operating system.
   ```
 pip install -r requirements.txt
   ```

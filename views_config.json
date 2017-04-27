@@ -1,0 +1,41 @@
+{
+    "prontuarios": {
+        "parameters": ["dt_alta"],
+        "query": "SELECT * FROM <table> WHERE dt_alta >= {parameters[0]}"
+    },
+
+    "movimentacao": {
+        "parameters": ["dt_entrada_unidade"],
+        "query": ""
+    },
+
+    "farmacia": {
+        "parameters": ["dt_atend_farmacia"],
+        "query": ""
+    },
+
+    "medicamentos": {
+        "parameters": ["dt_lib_medico"],
+        "query": ""
+    },
+
+    "exames_sangue": {
+        "parameters": ["dt_resultado"],
+        "query": ""
+    },
+
+    "exames_bilirrubina": {
+        "parameters": ["dt_resultado"],
+        "query": ""
+    },
+
+    "sinais_vitais": {
+        "parameters": ["dt_liberado", "dt_coleta"],
+        "query": ""
+    },
+
+    "protocolos_sepse": {
+        "parameters": ["dt_liberacao", "dt_registro", "dt_alta"],
+        "query": ""
+    }
+}

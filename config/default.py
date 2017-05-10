@@ -12,6 +12,7 @@ CORS_ORIGINS = {'origins': ['https://laurabotintegrationtest.mybluemix.net',
                 }
 SQLALCHEMY_DATABASE_URI = ''
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQL_DATE_FORMAT = '%d/%m/%Y %H:%M:%S'
 USERNAME = ''
 PASSWORD = ''
 MAIL_SERVER = 'example.com'

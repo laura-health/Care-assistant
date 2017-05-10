@@ -21,6 +21,7 @@ app.config.from_object('config.default')
 
 # Load the file specified by the APP_CONFIG_FILE environment variable
 # Variables defined here will override those in the default configuration
+os.environ.setdefault("APP_CONFIG_FILE", "config/production.py")
 app.config.from_envvar('APP_CONFIG_FILE')
 
 # Put in a easy to type variable
@@ -67,8 +68,9 @@ if os.path.isfile('views_config.json'):
         views_conf = load(data_file)
 else:
     print('No database')
-    subject = "Views configuration not found"
-    message = "The views configuration fili doesn't exist and it shouldn't be."
+    subject = "Views configurations not found"
+    message = "The views configurations file doesn't exist and it must be \
+    created."
     send_mail(subject, message)
     exit(1)
 
@@ -118,12 +120,18 @@ def check_params(f):
     """Create this view function to be wraped in a decorator."""
     @wraps(f)
     def decorated(*args, **kwargs):
+        missing_parameters = []
         for param in views_conf[kwargs['view']]['parameters']:
             if not request.args.get(param):
-                return Response('Missing parameters.\n', 400)
+                missing_parameters.append(param)
+                continue
 
             if not validate(request.args.get(param)):
                 return Response('Parameters must be a date.\n', 400)
+
+        if missing_parameters:
+            return Response(
+                'Missing parameters.\n{}'.format(missing_parameters), 400)
 
         return f(*args, **kwargs)
     return decorated
@@ -137,7 +145,7 @@ def get_view(view):
     if db:
         params = []
         for param in views_conf[view]['parameters']:
-            params.append(request.args.get(param))
+            params.append("'{}'".format(request.args.get(param).strip('\'')))
         query = views_conf[view]['query'].format(parameters=params)
         result = db.engine.execute(query)
         return dumps([dict(r) for r in result], default=alchemyencoder)
@@ -150,4 +158,5 @@ def get_view(view):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=port, debug=conf['DEBUG'], use_reloader=False)
+    app.run(host='0.0.0.0', port=port, debug=conf['DEBUG'],
+            use_reloader=conf['DEBUG'])

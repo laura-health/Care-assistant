@@ -1,0 +1,15 @@
+[Unit]
+Description=Web service for Laurabot integration
+Requires=network.target
+After=network.target
+
+[Service]
+WorkingDirectory=/root/laura-ws
+Environment="APP_CONFIG_FILE=/root/laura-ws/config/production.py"
+ExecStart=/usr/bin/python3 /root/laura-ws/server.py
+PIDFile=/var/run/laura-ws.pid
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -51,7 +51,7 @@ There are three types of settings, each one is for a specific environment.
 To set up the setting file you must set an environment variable 'APP_CONFIG_FILE'.
 To do this, for example on production environment:
   ```
-cd web-service-flask
+cd laura-ws
 export APP_CONFIG_FILE=config/production.py
   ```
 
@@ -60,9 +60,9 @@ export APP_CONFIG_FILE=config/production.py
 ## 4. Creating a systemd service (optional)
 
 ```
-cp web-service-flask.service /etc/systemd/system/
+cp laura-ws.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl start web-service-flask
+systemctl start laura-ws
 ```
 
 

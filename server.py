@@ -82,6 +82,16 @@ def alchemyencoder(obj):
         return obj.isoformat()
 
 
+def check_existing_view(f):
+    """Create this view function to be wraped in a decorator."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if (kwargs['view'] not in views_conf):
+            return Response('View {} not found.\n'.format(kwargs['view']), 400)
+        return f(*args, **kwargs)
+    return decorated
+
+
 def check_auth(username, password):
     """Check if a username / password combination is valid."""
     return (username == conf['USERNAME'] and
@@ -145,6 +155,7 @@ def check_params(f):
 
 
 @app.route('/<view>', methods=['GET'])
+@check_existing_view
 @requires_auth
 @check_params
 def get_view(view):

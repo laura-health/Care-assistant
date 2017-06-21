@@ -40,24 +40,7 @@ The only required settings are:
 
 
 
-## 3. Setting up the environment
-
-There are three types of settings, each one is for a specific environment.
-  - default.py is the file for default settings that you can override by the others environment settings.
-  - development.py is the file for settings that are used only when running locally.
-  - testing.py is the file for settings that are used when running in the test environment.
-  - production.py is the file for settings that are used when running in production.
-
-To set up the setting file you must set an environment variable 'APP_CONFIG_FILE'.
-To do this, for example on production environment:
-  ```
-cd laura-ws
-export APP_CONFIG_FILE=config/production.py
-  ```
-
-
-
-## 4. Creating a systemd service (optional)
+## 3. Creating a systemd service (optional)
 
 ```
 cp laura-ws.service /etc/systemd/system/
@@ -67,7 +50,7 @@ systemctl start laura-ws
 
 
 
-## 5. Creating a new view
+## 4. Creating a new view
 
 The only file you need to edit is 'views_config.json'. This file contains everything necessary to create a new view, with an url, checking the parameters and executing the query on the database.
 

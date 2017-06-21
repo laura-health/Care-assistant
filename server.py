@@ -2,7 +2,6 @@ from flask import Flask
 from flask import request
 from flask import Response
 from flask import jsonify
-from flask_cors import CORS
 from flask_mail import Mail
 from flask_mail import Message
 from flask_sqlalchemy import SQLAlchemy
@@ -18,12 +17,7 @@ app = Flask(__name__)
 
 
 # Load app configuration
-app.config.from_object('config.default')
-
-# Load the file specified by the APP_CONFIG_FILE environment variable
-# Variables defined here will override those in the default configuration
-os.environ.setdefault("APP_CONFIG_FILE", "config/production.py")
-app.config.from_envvar('APP_CONFIG_FILE')
+app.config.from_object('config')
 
 # Put in a easy to type variable
 conf = app.config
@@ -31,10 +25,6 @@ conf = app.config
 # Get the port number from the environment variable PORT
 # Default the port to the config PORT
 port = int(os.getenv('PORT', conf['PORT']))
-
-# Load CORS configuration
-cors = CORS(app, resources={r"/*": conf['CORS_ORIGINS']},
-            supports_credentials=True)
 
 # Load Flask E-mail Module
 mail = Mail(app)
@@ -165,6 +155,7 @@ def get_view(view):
         for param in views_conf[view]['parameters']:
             date_str = get_date_in_format(request.args.get(param))
             params.append("'{}'".format(date_str))
+        db.engine.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD/MM/YYYY HH24:MI:SS' NLS_TIMESTAMP_FORMAT = 'DD/MM/YYYY HH24:MI:SS.FF'")
         query = views_conf[view]['query'].format(parameters=params)
         result = db.engine.execute(query)
         return dumps([dict(r) for r in result], default=alchemyencoder)

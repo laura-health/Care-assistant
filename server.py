@@ -162,9 +162,12 @@ def get_view(view):
     if db:
         fixed_params = get_params(views_conf[view]['parameters'])
         fixed_query = views_conf[view]['query'].format(parameters=fixed_params)
-        optional_params = get_params(views_conf[view]['optional_parameters'])
+        optional_params = []
+        if 'optional_parameters' in views_conf[view]:
+            optional_params = get_params(
+                views_conf[view]['optional_parameters'])
         optional_query = ""
-        if optional_params:
+        if 'optional_query' in views_conf[view] and optional_params:
             optional_query = views_conf[view]['optional_query'].format(
                 optionals=optional_params)
         query = "{} {}".format(fixed_query, optional_query)

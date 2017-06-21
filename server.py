@@ -144,6 +144,15 @@ def check_params(f):
     return decorated
 
 
+def get_params(parameters):
+    params = []
+    for param in parameters:
+        if (request.args.get(param)):
+            date_str = get_date_in_format(request.args.get(param))
+            params.append("'{}'".format(date_str))
+    return params
+
+
 @app.route('/<view>', methods=['GET'])
 @check_existing_view
 @requires_auth
@@ -151,12 +160,14 @@ def check_params(f):
 def get_view(view):
     """Return the result of the query using the parameters."""
     if db:
-        params = []
-        for param in views_conf[view]['parameters']:
-            date_str = get_date_in_format(request.args.get(param))
-            params.append("'{}'".format(date_str))
-        db.engine.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'DD/MM/YYYY HH24:MI:SS' NLS_TIMESTAMP_FORMAT = 'DD/MM/YYYY HH24:MI:SS.FF'")
-        query = views_conf[view]['query'].format(parameters=params)
+        fixed_params = get_params(views_conf[view]['parameters'])
+        fixed_query = views_conf[view]['query'].format(parameters=fixed_params)
+        optional_params = get_params(views_conf[view]['optional_parameters'])
+        optional_query = ""
+        if optional_params:
+            optional_query = views_conf[view]['optional_query'].format(
+                optionals=optional_params)
+        query = "{} {}".format(fixed_query, optional_query)
         result = db.engine.execute(query)
         return dumps([dict(r) for r in result], default=alchemyencoder)
     else:

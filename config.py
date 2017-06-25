@@ -12,6 +12,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQL_DATE_FORMAT = '%d/%m/%Y %H:%M:%S'
 USERNAME = 'laura'
 PASSWORD = 'laura'
+MAIL_ENABLED = False
 MAIL_SERVER = 'example.com'
 MAIL_PORT = 000
 MAIL_USE_SSL = True

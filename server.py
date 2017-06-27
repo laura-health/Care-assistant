@@ -70,7 +70,7 @@ else:
 def alchemyencoder(obj):
     """JSON encoder function for SQLAlchemy special classes."""
     if isinstance(obj, date):
-        return obj.isoformat()
+        return obj.strftime('%Y-%m-%d %H:%M:%S')
 
 
 def check_existing_view(f):
@@ -124,7 +124,7 @@ def check_db(f):
     return decorated
 
 
-def validate(date_text):
+def validate_date(date_text):
     """Validate if the parameter text is a date."""
     try:
         datetime.strptime(date_text.strip('\''), '%Y-%m-%d %H:%M:%S')
@@ -134,6 +134,7 @@ def validate(date_text):
 
 
 def get_date_in_format(date_text):
+    """Transform string date in the right format to datetime."""
     date = datetime.strptime(date_text.strip('\''), '%Y-%m-%d %H:%M:%S')
     return datetime.strftime(date, conf['SQL_DATE_FORMAT'])
 
@@ -148,7 +149,7 @@ def check_params(f):
                 missing_parameters.append(param)
                 continue
 
-            if not validate(request.args.get(param)):
+            if not validate_date(request.args.get(param)):
                 return Response('Parameters must be a date in the format '
                                 'yyyy-mm-dd hh:mm:ss.\n', 400)
 
@@ -161,6 +162,7 @@ def check_params(f):
 
 
 def get_params(parameters):
+    """Return the list of date parameters formated to string."""
     params = []
     for param in parameters:
         if (request.args.get(param)):
@@ -169,12 +171,20 @@ def get_params(parameters):
     return params
 
 
+def get_fixed_query(view):
+    """Return the list of optional parameters."""
+    params = []
+    params = get_params(views_conf[view]['parameters'])
+    query = views_conf[view]['query'].format(parameters=params)
+    return query
+
+
 def get_optional_query(view):
+    """Return the list of optional parameters."""
     optional_params = []
     optional_query = ""
     if 'optional_parameters' in views_conf[view]:
-        optional_params = get_params(
-            views_conf[view]['optional_parameters'])
+        optional_params = get_params(views_conf[view]['optional_parameters'])
     if 'optional_query' in views_conf[view] and optional_params:
         optional_query = views_conf[view]['optional_query'].format(
             optionals=optional_params)
@@ -196,12 +206,19 @@ def get_extra_query(view):
 def get_view(view):
     """Return the result of the query using the parameters."""
     def generate(result):
+        first = True
+        yield '['
         for r in result:
-            yield dumps(dict(r), default=alchemyencoder)
+            if first:
+                yield dumps(dict(r), default=alchemyencoder)
+                first = False
+            else:
+                yield ',' + dumps(dict(r), default=alchemyencoder)
+
+        yield ']'
         result.close()
 
-    fixed_params = get_params(views_conf[view]['parameters'])
-    fixed_query = views_conf[view]['query'].format(parameters=fixed_params)
+    fixed_query = get_fixed_query(view)
     optional_query = get_optional_query(view)
     extra_query = get_extra_query(view)
     query = "{} {} {}".format(fixed_query, optional_query, extra_query)

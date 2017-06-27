@@ -1,7 +1,6 @@
 from flask import Flask
 from flask import request
 from flask import Response
-from flask import jsonify
 from flask_mail import Mail
 from flask_mail import Message
 from flask_sqlalchemy import SQLAlchemy
@@ -35,6 +34,8 @@ db = SQLAlchemy(app)
 
 def send_mail(subject, message):
     """Send a notification mail to ADMINS."""
+    if not conf['MAIL_ENABLED']:
+        return 0
 
     subject = "[WEB_SERVICE] {}".format(subject)
     message = ("Hi.\n\n" +
@@ -69,7 +70,7 @@ else:
 def alchemyencoder(obj):
     """JSON encoder function for SQLAlchemy special classes."""
     if isinstance(obj, date):
-        return obj.isoformat()
+        return obj.strftime('%Y-%m-%d %H:%M:%S')
 
 
 def check_existing_view(f):
@@ -108,7 +109,22 @@ def requires_auth(f):
     return decorated
 
 
-def validate(date_text):
+def check_db(f):
+    """Create this view function to be wraped in a decorator."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not db:
+            print('No database')
+            subject = "Database not found error"
+            message = "The database variable is None and it shouldn't be."
+            send_mail(subject, message)
+            return Response('Database error.\n', 500)
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def validate_date(date_text):
     """Validate if the parameter text is a date."""
     try:
         datetime.strptime(date_text.strip('\''), '%Y-%m-%d %H:%M:%S')
@@ -118,6 +134,7 @@ def validate(date_text):
 
 
 def get_date_in_format(date_text):
+    """Transform string date in the right format to datetime."""
     date = datetime.strptime(date_text.strip('\''), '%Y-%m-%d %H:%M:%S')
     return datetime.strftime(date, conf['SQL_DATE_FORMAT'])
 
@@ -132,7 +149,7 @@ def check_params(f):
                 missing_parameters.append(param)
                 continue
 
-            if not validate(request.args.get(param)):
+            if not validate_date(request.args.get(param)):
                 return Response('Parameters must be a date in the format '
                                 'yyyy-mm-dd hh:mm:ss.\n', 400)
 
@@ -145,6 +162,7 @@ def check_params(f):
 
 
 def get_params(parameters):
+    """Return the list of date parameters formated to string."""
     params = []
     for param in parameters:
         if (request.args.get(param)):
@@ -153,32 +171,59 @@ def get_params(parameters):
     return params
 
 
+def get_fixed_query(view):
+    """Return the list of optional parameters."""
+    params = []
+    params = get_params(views_conf[view]['parameters'])
+    query = views_conf[view]['query'].format(parameters=params)
+    return query
+
+
+def get_optional_query(view):
+    """Return the list of optional parameters."""
+    optional_params = []
+    optional_query = ""
+    if 'optional_parameters' in views_conf[view]:
+        optional_params = get_params(views_conf[view]['optional_parameters'])
+    if 'optional_query' in views_conf[view] and optional_params:
+        optional_query = views_conf[view]['optional_query'].format(
+            optionals=optional_params)
+    return optional_query
+
+
+def get_extra_query(view):
+    extra_query = ""
+    if 'extra_query' in views_conf[view]:
+        extra_query = views_conf[view]['extra_query']
+    return extra_query
+
+
 @app.route('/<view>', methods=['GET'])
 @check_existing_view
 @requires_auth
 @check_params
+@check_db
 def get_view(view):
     """Return the result of the query using the parameters."""
-    if db:
-        fixed_params = get_params(views_conf[view]['parameters'])
-        fixed_query = views_conf[view]['query'].format(parameters=fixed_params)
-        optional_params = []
-        if 'optional_parameters' in views_conf[view]:
-            optional_params = get_params(
-                views_conf[view]['optional_parameters'])
-        optional_query = ""
-        if 'optional_query' in views_conf[view] and optional_params:
-            optional_query = views_conf[view]['optional_query'].format(
-                optionals=optional_params)
-        query = "{} {}".format(fixed_query, optional_query)
-        result = db.engine.execute(query)
-        return dumps([dict(r) for r in result], default=alchemyencoder)
-    else:
-        print('No database')
-        subject = "Database not found error"
-        message = "The database variable is None and it shouldn't be."
-        send_mail(subject, message)
-        return jsonify([])
+    def generate(result):
+        first = True
+        yield '['
+        for r in result:
+            if first:
+                yield dumps(dict(r), default=alchemyencoder)
+                first = False
+            else:
+                yield ',' + dumps(dict(r), default=alchemyencoder)
+
+        yield ']'
+        result.close()
+
+    fixed_query = get_fixed_query(view)
+    optional_query = get_optional_query(view)
+    extra_query = get_extra_query(view)
+    query = "{} {} {}".format(fixed_query, optional_query, extra_query)
+    result = db.engine.execute(query)
+    return Response(generate(result), mimetype='application/json')
 
 
 if __name__ == '__main__':

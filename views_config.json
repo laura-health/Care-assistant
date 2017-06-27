@@ -3,48 +3,55 @@
         "parameters": ["dt_alta"],
         "query": "SELECT * FROM <table> WHERE dt_alta >= {parameters[0]}",
         "optional_parameters": ["dt_alta_fim"],
-        "optional_query": "AND dt_alta < {optionals[0]}"
+        "optional_query": "AND dt_alta < {optionals[0]}",
+        "extra_query": "ORDER BY dt_alta"
     },
 
     "movimentacao": {
         "parameters": ["dt_entrada_unidade"],
         "query": "SELECT * FROM <table> WHERE dt_entrada_unidade >= {parameters[0]}",
         "optional_parameters": ["dt_entrada_unidade_fim"],
-        "optional_query": "AND dt_entrada_unidade < {optionals[0]}"
+        "optional_query": "AND dt_entrada_unidade < {optionals[0]}",
+        "extra_query": "ORDER BY dt_entrada_unidade"
     },
 
     "farmacia": {
         "parameters": ["dt_atend_farmacia"],
         "query": "SELECT * FROM <table> WHERE dt_atend_farmacia >= {parameters[0]}",
         "optional_parameters": ["dt_atend_farmacia_fim"],
-        "optional_query": "AND dt_atend_farmacia < {optionals[0]}"
+        "optional_query": "AND dt_atend_farmacia < {optionals[0]}",
+        "extra_query": "ORDER BY dt_atend_farmacia"
     },
 
     "medicamentos": {
         "parameters": ["dt_lib_medico"],
         "query": "SELECT * FROM <table> WHERE dt_lib_medico >= {parameters[0]}",
         "optional_parameters": ["dt_lib_medico_fim"],
-        "optional_query": "AND dt_lib_medico < {optionals[0]}"
+        "optional_query": "AND dt_lib_medico < {optionals[0]}",
+        "extra_query": "ORDER BY dt_lib_medico"
     },
 
     "exames_sangue": {
         "parameters": ["dt_resultado"],
         "query": "SELECT * FROM <table> WHERE dt_resultado >= {parameters[0]}",
         "optional_parameters": ["dt_resultado_fim"],
-        "optional_query": "AND dt_resultado < {optionals[0]}"
+        "optional_query": "AND dt_resultado < {optionals[0]}",
+        "extra_query": "ORDER BY dt_resultado"
     },
 
     "sinais_vitais": {
         "parameters": ["dt_liberado", "dt_coleta"],
         "query": "SELECT * FROM <table> WHERE dt_liberado >= {parameters[0]} OR dt_coleta < {parameters[1]}",
         "optional_parameters": ["dt_liberado_fim", "dt_coleta_fim"],
-        "optional_query": "AND dt_liberado < {optionals[0]} OR dt_coleta < {optionals[1]}"
+        "optional_query": "AND dt_liberado < {optionals[0]} AND dt_coleta < {optionals[1]}",
+        "extra_query": "ORDER BY dt_liberado, dt_coleta"
     },
 
     "protocolos_sepse": {
         "parameters": ["dt_liberacao", "dt_registro", "dt_alta"],
         "query": "SELECT * FROM <table> WHERE dt_liberacao >= {parameters[0]} OR dt_registro >= {parameters[1]} OR dt_alta >= {parameters[2]}",
         "optional_parameters": ["dt_liberacao_fim", "dt_registro_fim", "dt_alta_fim"],
-        "optional_query": "AND dt_liberacao < {optionals[0]} OR dt_registro < {optionals[1]} OR dt_alta < {optionals[2]}"
+        "optional_query": "AND dt_liberacao < {optionals[0]} AND dt_registro < {optionals[1]} AND dt_alta < {optionals[2]}",
+        "extra_query": "ORDER BY dt_liberacao, dt_registro, dt_alta"
     }
 }

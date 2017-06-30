@@ -1,0 +1,4 @@
+Flask==0.12
+flask-cors==3.0.2
+flask-Mail==0.9.1
+flask_sqlalchemy==2.2.0

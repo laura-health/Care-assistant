@@ -57,6 +57,7 @@ The query that will execute is the concatenation of query, optional_query (if ex
 
 A view has the following structure:
 
+```
 "<view name>": {
     "parameters": ["<param 0>", "<param 1>", "<param 2>", ...],
     "query": "SELECT * FROM table WHERE <column field> >= {parameters[0]}",
@@ -64,6 +65,7 @@ A view has the following structure:
     "optional_query": "AND <column field> < {optionals[0]}",
     "extra_query": "ORDER BY <column field>"
 }
+```
 
 What the fields mean:
   - View name: This is will define the view url (/<view name>). Each view must have a unique name (url).

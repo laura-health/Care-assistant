@@ -10,7 +10,7 @@ import os
 from json import dumps, load
 from datetime import date
 from datetime import datetime
-
+from decimal import Decimal
 
 app = Flask(__name__)
 
@@ -71,6 +71,8 @@ def alchemyencoder(obj):
     """JSON encoder function for SQLAlchemy special classes."""
     if isinstance(obj, date):
         return obj.strftime('%Y-%m-%d %H:%M:%S')
+    if isinstance(obj, Decimal):
+        return float(obj)
 
 
 def check_existing_view(f):
@@ -222,6 +224,7 @@ def get_view(view):
     optional_query = get_optional_query(view)
     extra_query = get_extra_query(view)
     query = "{} {} {}".format(fixed_query, optional_query, extra_query)
+    #db.engine.execute("ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD HH24:MI:SS'")
     result = db.engine.execute(query)
     return Response(generate(result), mimetype='application/json')
 

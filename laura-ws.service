@@ -5,7 +5,6 @@ After=network.target
 
 [Service]
 WorkingDirectory=/root/laura-ws
-Environment="APP_CONFIG_FILE=/root/laura-ws/config/production.py"
 Environment="PORT=80"
 ExecStart=/usr/bin/python3 /root/laura-ws/server.py
 PIDFile=/var/run/laura-ws.pid

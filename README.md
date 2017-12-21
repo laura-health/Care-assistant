@@ -25,7 +25,7 @@ Run the app.
 python server.py
   ```
 
- View your app at: http://localhost:8080
+ View your app at: http://localhost:80
 
 
 

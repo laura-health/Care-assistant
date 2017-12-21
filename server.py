@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import request
 from flask import Response
+from flask import stream_with_context
 from flask_mail import Mail
 from flask_mail import Message
 from flask_sqlalchemy import SQLAlchemy
@@ -11,6 +12,10 @@ from json import dumps, load
 from datetime import date
 from datetime import datetime
 from decimal import Decimal
+import zlib
+import gzip
+import struct
+import time
 
 app = Flask(__name__)
 
@@ -207,17 +212,51 @@ def get_extra_query(view):
 @check_db
 def get_view(view):
     """Return the result of the query using the parameters."""
-    def generate(result):
+    def generate_zip_result(result):
+        # Yield a gzip file header first.
+        yield (
+            # Gzip file, deflate, no filename
+            b'\037\213\010\000' +
+            # compression start time
+            struct.pack('<L', int(time.time())) +
+            # maximum compression, no OS specified
+            b'\002\377'
+        )
+
+        # bookkeeping: the compression state, running CRC and total length
+        compressor = zlib.compressobj(
+            9, zlib.DEFLATED, -zlib.MAX_WBITS, zlib.DEF_MEM_LEVEL, 0)
+        crc = zlib.crc32("".encode('utf-8'))
+        length = 0
         first = True
-        yield '['
+
+        # concatenate each line of the reult
         for r in result:
             if first:
-                yield dumps(dict(r), default=alchemyencoder)
+                data = ('[' + dumps(dict(r), default=alchemyencoder)).encode(
+                    'utf-8')
                 first = False
             else:
-                yield ',' + dumps(dict(r), default=alchemyencoder)
+                data = (',' + dumps(dict(r), default=alchemyencoder)).encode(
+                    'utf-8')
+            chunk = compressor.compress(data)
+            if chunk:
+                yield chunk
+            crc = zlib.crc32(data, crc) & 0xffffffff
+            length += len(data)
 
-        yield ']'
+        # close the array sending ']'
+        data = ']'.encode('utf-8')
+        chunk = compressor.compress(data)
+        if chunk:
+            yield chunk
+        crc = zlib.crc32(data, crc) & 0xffffffff
+        length += len(']'.encode('utf-8'))
+
+        # Finishing off,
+        # send remainder of the compressed data, and CRC and length
+        yield compressor.flush()
+        yield struct.pack("<2L", crc, length & 0xffffffff)
         result.close()
 
     fixed_query = get_fixed_query(view)
@@ -226,7 +265,12 @@ def get_view(view):
     query = "{} {} {}".format(fixed_query, optional_query, extra_query)
     #db.engine.execute("ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD HH24:MI:SS'")
     result = db.engine.execute(query)
-    return Response(generate(result), mimetype='application/json')
+    response = Response(
+        stream_with_context(generate_zip_result(result)),
+        mimetype='application/gzip')
+    file_name = 'attachment; filename={}.gz'.format(view)
+    response.headers['Content-Disposition'] = file_name
+    return response
 
 
 if __name__ == '__main__':

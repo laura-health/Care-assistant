@@ -264,7 +264,8 @@ def get_view(view):
     extra_query = get_extra_query(view)
     query = "{} {} {}".format(fixed_query, optional_query, extra_query)
     #db.engine.execute("ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD HH24:MI:SS'")
-    result = db.engine.execute(query)
+    limited = "SELECT * FROM ( {} ) WHERE ROWNUM < 500".format(query)
+    result = db.engine.execute(limited)
     response = Response(
         stream_with_context(generate_zip_result(result)),
         mimetype='application/gzip')
